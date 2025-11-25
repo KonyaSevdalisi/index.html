@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karanlık Tıklama | Lider Tablosu Eklendi</title>
+    <title>Karanlık Tıklama | İsim Eklendi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -106,6 +106,21 @@
     </style>
 </head>
 <body class="h-screen w-screen text-slate-200 flex flex-col md:flex-row overflow-hidden relative">
+
+    <!-- İSİM GİRİŞ MODALI (YENİ) -->
+    <div id="name-modal" class="fixed inset-0 bg-black/70 z-[120] flex items-center justify-center backdrop-blur-sm hidden">
+        <div class="bg-slate-800 p-6 rounded-xl border border-indigo-500/50 w-80 shadow-2xl">
+            <h3 class="text-xl font-bold text-indigo-400 mb-3"><i class="fas fa-signature mr-2"></i>Takma Ad Belirle</h3>
+            <p class="text-slate-300 mb-4 text-sm">Lider tablosunda görünmesi için bir isim girin (max 12 karakter):</p>
+            
+            <input type="text" id="name-input" maxlength="12" placeholder="Kullanıcı Adınız" class="w-full bg-slate-700 border border-slate-600 rounded p-2 text-white focus:border-indigo-500 outline-none transition-colors mb-4">
+
+            <button onclick="saveUserName()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded transition-colors">
+                <i class="fas fa-check mr-2"></i>Kaydet ve Başla
+            </button>
+            <p id="name-error" class="text-red-400 text-xs mt-2 hidden">Lütfen geçerli bir isim girin.</p>
+        </div>
+    </div>
 
     <!-- OYUN SIFIRLAMA ONAY MODALI -->
     <div id="reset-modal" class="hidden fixed inset-0 bg-black/70 z-[110] flex items-center justify-center backdrop-blur-sm">
@@ -254,8 +269,9 @@
                     <!-- Skorlar buraya JS ile eklenecek -->
                     <p class="text-slate-500 text-center py-4">Yükleniyor...</p>
                 </ul>
-                <div id="user-id-display" class="text-xs text-slate-600 mt-4 pt-3 border-t border-slate-800 truncate" title="Sizin Benzersiz Kimliğiniz">
-                    Kimliğiniz: Yükleniyor...
+                <div id="user-info-display" class="text-xs text-slate-600 mt-4 pt-3 border-t border-slate-800">
+                    <span id="user-display-name">Kullanıcı Adı: Yükleniyor...</span>
+                    <span id="user-id-display" class="block truncate mt-1" title="Sizin Benzersiz Kimliğiniz">Kimliğiniz: Yükleniyor...</span>
                 </div>
             </div>
         </div>
@@ -326,8 +342,7 @@
                 return;
             }
 
-            // Firestore loglarını etkinleştir
-            setLogLevel('debug'); 
+            setLogLevel('error'); // Hata loglarını göster
 
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
@@ -350,10 +365,16 @@
                     }
                 }
                 isAuthReady = true;
-                updateUI();
-                console.log(`Firebase Hazır. Kullanıcı Kimliği (User ID): ${userId}`);
                 
-                // Kimlik doğrulama tamamlandığında lider tablosu güncellemelerini başlat
+                // Kullanıcı kimliği ayarlandığında, isim kontrolü ve UI güncellemesi yapılır.
+                loadGame(); 
+                if (!gameState.userName) {
+                    showNameModal();
+                } else {
+                    updateUI();
+                }
+
+                console.log(`Firebase Hazır. Kullanıcı Kimliği (User ID): ${userId}`);
                 startLeaderboardUpdates();
             });
         }
@@ -363,6 +384,7 @@
             money: 0,
             clickValue: 1, 
             sps: 0,
+            userName: null, // Kullanıcının belirlediği isim
             items: [
                 // Tıklama Gücü Eşyaları
                 { id: 1, type: 'click', name: "Paslı Hançer", cost: 15, power: 1, sps: 0, icon: "fa-khanda", bought: 0 },
@@ -410,6 +432,12 @@
         const statsTabBtn = document.getElementById('stats-tab-btn');
         const leaderboardTabBtn = document.getElementById('leaderboard-tab-btn');
         const userIdDisplay = document.getElementById('user-id-display');
+        const userDisplayName = document.getElementById('user-display-name');
+
+        // İSİM MODAL ELEMENTLERİ
+        const nameModal = document.getElementById('name-modal');
+        const nameInput = document.getElementById('name-input');
+        const nameError = document.getElementById('name-error');
 
         // --- TAB KONTROLÜ ---
         let currentTab = 'stats';
@@ -438,9 +466,10 @@
         const LEADERBOARD_COLLECTION = `artifacts/${appId}/public/data/leaderboard`;
 
         async function saveScoreToFirestore() {
-            if (!isAuthReady || !userId || !db) return;
+            if (!isAuthReady || !userId || !db || !gameState.userName) return;
 
             const score = Math.floor(gameState.money);
+            const displayName = gameState.userName;
 
             // Transaction kullanarak, skorun yalnızca eskisinden yüksekse güncellenmesini sağla.
             try {
@@ -449,16 +478,25 @@
                     const docSnap = await transaction.get(leaderboardRef);
                     // Mevcut skor yoksa 0 kabul et
                     const currentScore = docSnap.exists() ? docSnap.data().score : 0;
+                    // Mevcut isim varsa kullan (isim değiştirmeyi engellemek için, basitlik adına)
+                    const existingDisplayName = docSnap.exists() ? docSnap.data().displayName : displayName;
 
                     if (score > currentScore) {
                         transaction.set(leaderboardRef, {
                             userId: userId,
                             score: score,
-                            // Kullanıcı adını basitleştirelim
-                            displayName: `Oyuncu ${userId.substring(0, 4)}`,
+                            displayName: existingDisplayName, // Var olan ismi koru
                             lastUpdated: new Date()
                         });
                         console.log(`Skor güncellendi: ${score}`);
+                    } else if (!docSnap.exists()) {
+                         // İlk defa kaydediyorsa, skoru 0 bile olsa ismi kaydet.
+                         transaction.set(leaderboardRef, {
+                            userId: userId,
+                            score: score,
+                            displayName: displayName,
+                            lastUpdated: new Date()
+                        });
                     }
                 });
             } catch (error) {
@@ -501,13 +539,16 @@
                 const rank = index + 1;
                 const isCurrentUser = score.userId === userId;
                 
+                // Firestore'dan gelen displayName'i kullan
+                const nameToDisplay = score.displayName || `Oyuncu ${score.userId.substring(0, 4)}`;
+
                 const itemEl = document.createElement('li');
                 itemEl.className = `flex items-center justify-between p-3 rounded-lg shadow-md ${isCurrentUser ? 'bg-indigo-600/50 border-indigo-500 ring-2 ring-indigo-400' : 'bg-slate-800 border-slate-700'} border transition-colors`;
                 
                 itemEl.innerHTML = `
                     <div class="flex items-center space-x-3">
                         <span class="text-xl font-extrabold w-8 text-center ${isCurrentUser ? 'text-white' : 'text-purple-400'}">${rank}.</span>
-                        <span class="font-semibold ${isCurrentUser ? 'text-white' : 'text-slate-200'}">${score.displayName}</span>
+                        <span class="font-semibold ${isCurrentUser ? 'text-white' : 'text-slate-200'}">${nameToDisplay}</span>
                     </div>
                     <div class="text-right">
                         <span class="text-xl font-bold text-yellow-300">${Math.floor(score.score).toLocaleString()}</span>
@@ -520,6 +561,9 @@
             if (userIdDisplay && userId) {
                 userIdDisplay.textContent = `Kimliğiniz: ${userId}`;
             }
+            if (userDisplayName && gameState.userName) {
+                 userDisplayName.textContent = `Kullanıcı Adınız: ${gameState.userName}`;
+            }
         }
         
         function startLeaderboardUpdates() {
@@ -527,6 +571,34 @@
             setInterval(saveScoreToFirestore, 5000); 
             // Lider tablosunu dinlemeye başla
             fetchLeaderboard();
+        }
+
+        // --- İSİM BELİRLEME LOGİĞİ ---
+        function showNameModal() {
+            // Sadece isim belirlenmediyse ve admin paneli açık değilse göster.
+            if (!gameState.userName && adminPanel.classList.contains('hidden')) {
+                nameModal.classList.remove('hidden');
+                nameInput.focus();
+            }
+        }
+        
+        function saveUserName() {
+            let name = nameInput.value.trim();
+            nameError.classList.add('hidden');
+
+            if (name.length < 2 || name.length > 12) {
+                nameError.textContent = "İsim 2 ile 12 karakter arasında olmalıdır.";
+                nameError.classList.remove('hidden');
+                return;
+            }
+            
+            // Temizleme ve kaydetme
+            gameState.userName = name.replace(/[^a-zA-Z0-9ığüşöçİĞÜŞÖÇ\s]/g, '').substring(0, 12);
+            nameModal.classList.add('hidden');
+            
+            saveGame(); // İsimi kaydet
+            updateUI();
+            saveScoreToFirestore(); // Lider tablosuna ilk kaydı yap
         }
 
         // --- PERSISTENCE (KAYDETME/YÜKLEME) ---
@@ -537,6 +609,7 @@
                 money: gameState.money,
                 clickValue: gameState.clickValue,
                 sps: gameState.sps,
+                userName: gameState.userName, // İsimi kaydet
                 items: gameState.items.map(item => ({ id: item.id, cost: item.cost, bought: item.bought }))
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(saveObject));
@@ -549,6 +622,7 @@
                 gameState.money = loadedData.money || 0;
                 gameState.clickValue = loadedData.clickValue || 1;
                 gameState.sps = loadedData.sps || 0; 
+                gameState.userName = loadedData.userName || null; // İsimi yükle
                 
                 if (loadedData.items) {
                     loadedData.items.forEach(loadedItem => {
@@ -603,6 +677,10 @@
                     }
                 }
             });
+
+            if (userId && userDisplayName) {
+                 userDisplayName.textContent = `Kullanıcı Adınız: ${gameState.userName || "Belirlenmedi"}`;
+            }
 
             updateTargetInfo();
         }
@@ -725,6 +803,9 @@
         }
 
         document.addEventListener('keydown', (e) => {
+            // İsim giriş modali açıksa klavye komutlarını yok say
+            if (!nameModal.classList.contains('hidden')) return;
+
             const key = e.key.toLowerCase();
             
             if (key === SECRET_CODE[keySequenceIndex]) {
@@ -783,7 +864,6 @@
 
         function confirmReset() {
             localStorage.removeItem(SAVE_KEY);
-            // Firebase kaydını silmek istenseydi buraya gelirdi, ancak küresel tabloyu bozmamak için sadece localstorage silinir
             location.reload();
         }
         
@@ -804,6 +884,9 @@
 
         // --- Tıklama Olayları ---
         mainCharacter.addEventListener('mousedown', (e) => {
+            // İsim modali açıkken tıklamayı engelle
+            if (!nameModal.classList.contains('hidden')) return; 
+
             mainCharacter.parentElement.classList.remove('click-anim');
             void mainCharacter.parentElement.offsetWidth;
             mainCharacter.parentElement.classList.add('click-anim');
@@ -817,6 +900,7 @@
             saveGame(); 
             updateUI();
             showFloatingText(e.clientX, e.clientY, `+${gameState.clickValue}`);
+            // Tek bir tıklamada skoru kaydetmek gereksizdir, 5 saniyelik döngü yeterlidir.
         });
 
         function spawnGhost() {
@@ -870,11 +954,10 @@
         }
 
         // --- Başlangıç ---
-        loadGame();
+        // loadGame() artık initializeFirebase içinde çağrılıyor.
         createShop(); 
-        updateUI(); 
-        initializeFirebase(); // Firebase'i başlat
-        switchTab('stats'); // Varsayılan olarak İstatistikler sekmesini göster
+        initializeFirebase(); 
+        switchTab('stats'); 
 
     </script>
 </body>
