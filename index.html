@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karanlık Tıklama | Otomatik Kazanç Eklendi</title>
+    <title>Karanlık Tıklama | Lider Tablosu Eklendi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -167,7 +167,7 @@
         <i class="fas fa-chevron-left group-hover:scale-125 transition-transform"></i>
     </button>
 
-    <!-- SOL PANEL: İstatistikler ve Hedef -->
+    <!-- SOL PANEL: İstatistikler ve Hedef / Lider Tablosu -->
     <div id="left-panel" class="panel-transition w-full md:w-1/4 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between z-10 shadow-xl relative whitespace-nowrap">
         
         <!-- Gizleme Butonu (Sol) -->
@@ -175,10 +175,10 @@
             <i class="fas fa-chevron-left"></i>
         </button>
 
-        <!-- Üst Bilgi -->
+        <!-- Üst Bilgi ve Genel İstatistikler -->
         <div>
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-3xl font-bold text-purple-400 tracking-wider"><i class="fas fa-ghost mr-2"></i>Clicker</h1>
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-3xl font-bold text-purple-400 tracking-wider"><i class="fas fa-ghost mr-2"></i>SOUL</h1>
                 <!-- Admin Butonu (Gizli Kalacak) -->
                 <button id="admin-button" onclick="toggleAdminPanel()" class="hidden text-slate-600 hover:text-purple-400 transition-colors p-2 rounded-full hover:bg-slate-800 mr-6" title="Admin Panelini Aç">
                     <i class="fas fa-cog text-xl"></i>
@@ -193,43 +193,70 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <!-- Tıklama Gücü -->
-                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 shadow-lg">
-                    <p class="text-slate-400 text-xs uppercase tracking-wide">Tıklama Gücü</p>
-                    <div class="flex items-center mt-1">
-                        <i class="fas fa-hand-sparkles text-purple-400 text-lg mr-2"></i>
-                        <span id="power-display" class="text-xl font-bold text-purple-200">+1</span>
-                    </div>
-                </div>
-                <!-- Saniyedeki Ruh (YENİ EKLENDİ) -->
-                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 shadow-lg">
-                    <p class="text-slate-400 text-xs uppercase tracking-wide">Saniyede Ruh (SPS)</p>
-                    <div class="flex items-center mt-1">
-                        <i class="fas fa-hourglass-half text-yellow-400 text-lg mr-2"></i>
-                        <span id="sps-display" class="text-xl font-bold text-yellow-200">0</span>
-                    </div>
-                </div>
+            <!-- TAB BUTONLARI -->
+            <div class="flex space-x-2 mb-4 p-1 bg-slate-800 rounded-lg">
+                <button id="stats-tab-btn" onclick="switchTab('stats')" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-colors bg-indigo-600 text-white">
+                    <i class="fas fa-chart-bar mr-1"></i> İstatistikler
+                </button>
+                <button id="leaderboard-tab-btn" onclick="switchTab('leaderboard')" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-colors text-slate-400 hover:bg-slate-700/50">
+                    <i class="fas fa-trophy mr-1"></i> Lider Tablosu
+                </button>
             </div>
-        </div>
 
-        <!-- Hedef Paneli -->
-        <div class="mt-6 bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-indigo-900/50 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-500 blur-3xl opacity-20"></div>
-            <h3 class="text-indigo-300 font-bold mb-3 border-b border-slate-700 pb-2">SIRADAKİ HEDEF</h3>
-            
-            <div id="target-info">
-                <p id="target-name" class="text-lg text-white font-semibold truncate">Hesaplanıyor...</p>
-                <p class="text-sm text-slate-400 mt-1">Fiyat: <span id="target-price" class="text-yellow-400">0</span></p>
-                
-                <div class="mt-3 pt-3 border-t border-slate-700/50">
-                    <p class="text-xs text-slate-400 mb-1">Gereken Miktar:</p>
-                    <p id="target-needed" class="text-red-400 font-bold text-xl">0</p>
+            <!-- TAB İÇERİKLERİ -->
+            <div id="stats-content" class="tab-content">
+                <!-- Tıklama ve SPS Bilgileri -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <!-- Tıklama Gücü -->
+                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 shadow-lg">
+                        <p class="text-slate-400 text-xs uppercase tracking-wide">Tıklama Gücü</p>
+                        <div class="flex items-center mt-1">
+                            <i class="fas fa-hand-sparkles text-purple-400 text-lg mr-2"></i>
+                            <span id="power-display" class="text-xl font-bold text-purple-200">+1</span>
+                        </div>
+                    </div>
+                    <!-- Saniyedeki Ruh -->
+                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 shadow-lg">
+                        <p class="text-slate-400 text-xs uppercase tracking-wide">Saniyede Ruh (SPS)</p>
+                        <div class="flex items-center mt-1">
+                            <i class="fas fa-hourglass-half text-yellow-400 text-lg mr-2"></i>
+                            <span id="sps-display" class="text-xl font-bold text-yellow-200">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hedef Paneli -->
+                <div class="mt-6 bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-indigo-900/50 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-500 blur-3xl opacity-20"></div>
+                    <h3 class="text-indigo-300 font-bold mb-3 border-b border-slate-700 pb-2">SIRADAKİ HEDEF</h3>
+                    
+                    <div id="target-info">
+                        <p id="target-name" class="text-lg text-white font-semibold truncate">Hesaplanıyor...</p>
+                        <p class="text-sm text-slate-400 mt-1">Fiyat: <span id="target-price" class="text-yellow-400">0</span></p>
+                        
+                        <div class="mt-3 pt-3 border-t border-slate-700/50">
+                            <p class="text-xs text-slate-400 mb-1">Gereken Miktar:</p>
+                            <p id="target-needed" class="text-red-400 font-bold text-xl">0</p>
+                        </div>
+                    </div>
+                    <div id="target-completed" class="hidden text-center py-4">
+                        <i class="fas fa-crown text-4xl text-yellow-500 mb-2"></i>
+                        <p class="text-emerald-400 font-bold">MARKETİN HAKİMİSİN!</p>
+                    </div>
                 </div>
             </div>
-            <div id="target-completed" class="hidden text-center py-4">
-                <i class="fas fa-crown text-4xl text-yellow-500 mb-2"></i>
-                <p class="text-emerald-400 font-bold">MARKETİN HAKİMİSİN!</p>
+
+            <div id="leaderboard-content" class="tab-content hidden h-full overflow-y-auto pt-2">
+                <h3 class="text-xl font-bold text-yellow-400 mb-3 flex items-center">
+                    <i class="fas fa-globe mr-2"></i> Küresel Lider Tablosu
+                </h3>
+                <ul id="leaderboard-list" class="space-y-2">
+                    <!-- Skorlar buraya JS ile eklenecek -->
+                    <p class="text-slate-500 text-center py-4">Yükleniyor...</p>
+                </ul>
+                <div id="user-id-display" class="text-xs text-slate-600 mt-4 pt-3 border-t border-slate-800 truncate" title="Sizin Benzersiz Kimliğiniz">
+                    Kimliğiniz: Yükleniyor...
+                </div>
             </div>
         </div>
     </div>
@@ -277,12 +304,65 @@
         Tarayıcınız ses öğesini desteklemiyor.
     </audio>
 
-    <script>
+    <script type="module">
+        // --- Firebase Setup and Global Variables (MANDATORY) ---
+        // Firebase yapılandırması ve kimlik doğrulama değişkenleri Canvas ortamından alınır.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db, auth, userId = null;
+        let isAuthReady = false;
+        
+        // Firestore importları
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, query, collection, orderBy, limit, onSnapshot, runTransaction, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        async function initializeFirebase() {
+            if (!firebaseConfig) {
+                console.error("Firebase yapılandırması eksik. Firestore başlatılamıyor.");
+                isAuthReady = true;
+                return;
+            }
+
+            // Firestore loglarını etkinleştir
+            setLogLevel('debug'); 
+
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Kimlik Doğrulama İşlemi
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                } else {
+                    if (initialAuthToken) {
+                        try {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } catch (error) {
+                            console.error("Özel token ile oturum açma hatası:", error);
+                            await signInAnonymously(auth);
+                        }
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                }
+                isAuthReady = true;
+                updateUI();
+                console.log(`Firebase Hazır. Kullanıcı Kimliği (User ID): ${userId}`);
+                
+                // Kimlik doğrulama tamamlandığında lider tablosu güncellemelerini başlat
+                startLeaderboardUpdates();
+            });
+        }
+        
         // --- Oyun Verileri ve Durumu ---
         let gameState = {
             money: 0,
-            clickValue: 1, // Tıklama başına para
-            sps: 0,        // Souls Per Second (Saniyedeki Ruh) - YENİ
+            clickValue: 1, 
+            sps: 0,
             items: [
                 // Tıklama Gücü Eşyaları
                 { id: 1, type: 'click', name: "Paslı Hançer", cost: 15, power: 1, sps: 0, icon: "fa-khanda", bought: 0 },
@@ -291,14 +371,11 @@
                 { id: 4, type: 'click', name: "Kemik Asa", cost: 2000, power: 50, sps: 0, icon: "fa-staff-snake", bought: 0 },
                 { id: 5, type: 'click', name: "Vampir Dişi", cost: 7500, power: 150, sps: 0, icon: "fa-tooth", bought: 0 },
                 { id: 6, type: 'click', name: "Karanlık Kitap", cost: 25000, power: 400, sps: 0, icon: "fa-book-skull", bought: 0 },
-                // Yeni Tıklama Gücü Eşyaları
                 { id: 7, type: 'click', name: "Lanetli Zincir", cost: 50000, power: 800, sps: 0, icon: "fa-chain", bought: 0 },
                 { id: 8, type: 'click', name: "Azrailin Tırpanı", cost: 100000, power: 1000, sps: 0, icon: "fa-scythe", bought: 0 },
                 { id: 9, type: 'click', name: "Boynuzlu Miğfer", cost: 500000, power: 5000, sps: 0, icon: "fa-helmet-battle", bought: 0 },
                 { id: 10, type: 'click', name: "Sonsuzluk Mührü", cost: 2500000, power: 20000, sps: 0, icon: "fa-infinity", bought: 0 },
-                
                 // Otomatik Tıklama (Idle Income) Eşyası
-                // Bu eşyanın 'power' değeri 0, 'sps' değeri 1'den başlıyor.
                 { id: 100, type: 'idle', name: "Gölge Hizmetkarı", cost: 250, power: 0, sps: 1, icon: "fa-skull-crossbones", bought: 0 }
             ]
         };
@@ -307,7 +384,7 @@
         // --- DOM Elementleri ---
         const moneyDisplay = document.getElementById('money-display');
         const powerDisplay = document.getElementById('power-display');
-        const spsDisplay = document.getElementById('sps-display'); // YENİ SPS Display
+        const spsDisplay = document.getElementById('sps-display'); 
         const mainCharacter = document.getElementById('main-character');
         const shopContainer = document.getElementById('shop-container');
         const targetName = document.getElementById('target-name');
@@ -316,32 +393,150 @@
         const targetInfo = document.getElementById('target-info');
         const targetCompleted = document.getElementById('target-completed');
         const resetModal = document.getElementById('reset-modal');
-        
-        // Admin Elementleri
         const adminPanel = document.getElementById('admin-panel');
         const inputMoney = document.getElementById('input-money');
         const inputPower = document.getElementById('input-power');
-        const inputSPS = document.getElementById('input-sps'); // YENİ SPS Input
+        const inputSPS = document.getElementById('input-sps'); 
         const adminButton = document.getElementById('admin-button');
-
-        // Panel Elementleri
         const leftPanel = document.getElementById('left-panel');
         const rightPanel = document.getElementById('right-panel');
         const leftOpenBtn = document.getElementById('left-open-btn');
         const rightOpenBtn = document.getElementById('right-open-btn');
-
-        // Ses Elementi 
         const clickSound = document.getElementById('click-sound');
+
+        // LİDER TABLOSU ELEMENTLERİ
+        const statsContent = document.getElementById('stats-content');
+        const leaderboardContent = document.getElementById('leaderboard-content');
+        const statsTabBtn = document.getElementById('stats-tab-btn');
+        const leaderboardTabBtn = document.getElementById('leaderboard-tab-btn');
+        const userIdDisplay = document.getElementById('user-id-display');
+
+        // --- TAB KONTROLÜ ---
+        let currentTab = 'stats';
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // İçerikleri gizle/göster
+            statsContent.classList.toggle('hidden', tabName !== 'stats');
+            leaderboardContent.classList.toggle('hidden', tabName !== 'leaderboard');
+            
+            // Buton stillerini güncelle
+            statsTabBtn.classList.toggle('bg-indigo-600', tabName === 'stats');
+            statsTabBtn.classList.toggle('text-white', tabName === 'stats');
+            statsTabBtn.classList.toggle('text-slate-400', tabName !== 'stats');
+            statsTabBtn.classList.toggle('hover:bg-slate-700/50', tabName !== 'stats');
+
+            leaderboardTabBtn.classList.toggle('bg-indigo-600', tabName === 'leaderboard');
+            leaderboardTabBtn.classList.toggle('text-white', tabName === 'leaderboard');
+            leaderboardTabBtn.classList.toggle('text-slate-400', tabName !== 'leaderboard');
+            leaderboardTabBtn.classList.toggle('hover:bg-slate-700/50', tabName !== 'leaderboard');
+        }
+
+
+        // --- FIREBASE/FIRESTORE LİDER TABLOSU LOGİĞİ ---
+        const LEADERBOARD_COLLECTION = `artifacts/${appId}/public/data/leaderboard`;
+
+        async function saveScoreToFirestore() {
+            if (!isAuthReady || !userId || !db) return;
+
+            const score = Math.floor(gameState.money);
+
+            // Transaction kullanarak, skorun yalnızca eskisinden yüksekse güncellenmesini sağla.
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const leaderboardRef = doc(db, LEADERBOARD_COLLECTION, userId);
+                    const docSnap = await transaction.get(leaderboardRef);
+                    // Mevcut skor yoksa 0 kabul et
+                    const currentScore = docSnap.exists() ? docSnap.data().score : 0;
+
+                    if (score > currentScore) {
+                        transaction.set(leaderboardRef, {
+                            userId: userId,
+                            score: score,
+                            // Kullanıcı adını basitleştirelim
+                            displayName: `Oyuncu ${userId.substring(0, 4)}`,
+                            lastUpdated: new Date()
+                        });
+                        console.log(`Skor güncellendi: ${score}`);
+                    }
+                });
+            } catch (error) {
+                console.error("İşlem başarısız (Skor kaydı):", error);
+            }
+        }
+
+        function fetchLeaderboard() {
+            if (!isAuthReady || !db) return;
+
+            const q = query(
+                collection(db, LEADERBOARD_COLLECTION),
+                orderBy("score", "desc"), // Skora göre büyükten küçüğe sırala
+                limit(10) // İlk 10'u al
+            );
+
+            // Gerçek zamanlı dinleyici (onSnapshot)
+            onSnapshot(q, (querySnapshot) => {
+                const leaderboard = [];
+                querySnapshot.forEach((doc) => {
+                    leaderboard.push(doc.data());
+                });
+                renderLeaderboard(leaderboard);
+            }, (error) => {
+                console.error("Lider tablosu çekilirken hata oluştu:", error);
+                document.getElementById('leaderboard-list').innerHTML = `<p class="text-red-400">Lider tablosu yüklenemedi: ${error.message}</p>`;
+            });
+        }
+        
+        function renderLeaderboard(scores) {
+            const listEl = document.getElementById('leaderboard-list');
+            listEl.innerHTML = ''; 
+
+            if (scores.length === 0) {
+                listEl.innerHTML = '<p class="text-slate-500 text-center py-4">Henüz skor yok. İlk Ruhları toplayın!</p>';
+                return;
+            }
+
+            scores.forEach((score, index) => {
+                const rank = index + 1;
+                const isCurrentUser = score.userId === userId;
+                
+                const itemEl = document.createElement('li');
+                itemEl.className = `flex items-center justify-between p-3 rounded-lg shadow-md ${isCurrentUser ? 'bg-indigo-600/50 border-indigo-500 ring-2 ring-indigo-400' : 'bg-slate-800 border-slate-700'} border transition-colors`;
+                
+                itemEl.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xl font-extrabold w-8 text-center ${isCurrentUser ? 'text-white' : 'text-purple-400'}">${rank}.</span>
+                        <span class="font-semibold ${isCurrentUser ? 'text-white' : 'text-slate-200'}">${score.displayName}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xl font-bold text-yellow-300">${Math.floor(score.score).toLocaleString()}</span>
+                        <p class="text-xs ${isCurrentUser ? 'text-indigo-200' : 'text-slate-500'}">Ruh</p>
+                    </div>
+                `;
+                listEl.appendChild(itemEl);
+            });
+            
+            if (userIdDisplay && userId) {
+                userIdDisplay.textContent = `Kimliğiniz: ${userId}`;
+            }
+        }
+        
+        function startLeaderboardUpdates() {
+            // Skoru her 5 saniyede bir kaydet
+            setInterval(saveScoreToFirestore, 5000); 
+            // Lider tablosunu dinlemeye başla
+            fetchLeaderboard();
+        }
 
         // --- PERSISTENCE (KAYDETME/YÜKLEME) ---
         const SAVE_KEY = 'karanlikTıklamaSave';
 
         function saveGame() {
-            // Sadece gerekli state'i kaydet
             const saveObject = {
                 money: gameState.money,
                 clickValue: gameState.clickValue,
-                sps: gameState.sps, // YENİ: sps'i kaydet
+                sps: gameState.sps,
                 items: gameState.items.map(item => ({ id: item.id, cost: item.cost, bought: item.bought }))
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(saveObject));
@@ -353,9 +548,8 @@
                 const loadedData = JSON.parse(savedData);
                 gameState.money = loadedData.money || 0;
                 gameState.clickValue = loadedData.clickValue || 1;
-                gameState.sps = loadedData.sps || 0; // YENİ: sps'i yükle
+                gameState.sps = loadedData.sps || 0; 
                 
-                // Item state'lerini yükle
                 if (loadedData.items) {
                     loadedData.items.forEach(loadedItem => {
                         const existingItem = gameState.items.find(i => i.id === loadedItem.id);
@@ -368,43 +562,13 @@
             }
         }
 
-        // --- PANEL KONTROL FONKSİYONLARI ---
-        function toggleLeftPanel() {
-            if (leftPanel.classList.contains('w-0')) {
-                // Aç
-                leftPanel.classList.remove('w-0', 'p-0', 'opacity-0', 'border-0', 'overflow-hidden');
-                leftPanel.classList.add('w-full', 'md:w-1/4', 'p-6', 'opacity-100', 'border-r');
-                leftOpenBtn.classList.add('hidden');
-            } else {
-                // Kapat
-                leftPanel.classList.remove('w-full', 'md:w-1/4', 'p-6', 'opacity-100', 'border-r');
-                leftPanel.classList.add('w-0', 'p-0', 'opacity-0', 'border-0', 'overflow-hidden');
-                leftOpenBtn.classList.remove('hidden');
-            }
-        }
-
-        function toggleRightPanel() {
-            if (rightPanel.classList.contains('w-0')) {
-                // Aç
-                rightPanel.classList.remove('w-0', 'p-0', 'opacity-0', 'border-0', 'overflow-hidden');
-                rightPanel.classList.add('w-full', 'md:w-1/4', 'opacity-100', 'border-l');
-                rightOpenBtn.classList.add('hidden');
-            } else {
-                // Kapat
-                rightPanel.classList.remove('w-full', 'md:w-1/4', 'opacity-100', 'border-l');
-                rightPanel.classList.add('w-0', 'p-0', 'opacity-0', 'border-0', 'overflow-hidden');
-                rightOpenBtn.classList.remove('hidden');
-            }
-        }
-
         // --- Temel Fonksiyonlar ---
 
         function updateUI() {
             moneyDisplay.textContent = Math.floor(gameState.money).toLocaleString();
             powerDisplay.textContent = "+" + gameState.clickValue.toLocaleString();
-            spsDisplay.textContent = gameState.sps.toLocaleString(); // YENİ: SPS gösterimi
+            spsDisplay.textContent = gameState.sps.toLocaleString();
             
-            // Admin butonunu sadece admin modunda göster
             if (isAdminMode) {
                 adminButton.classList.remove('hidden');
             } else {
@@ -444,11 +608,9 @@
         }
 
         function updateTargetInfo() {
-            // Sadece tıklama gücü veya sps artışı sağlayan eşyaları hedef al
             let nextTarget = gameState.items.find(item => item.cost > gameState.money);
 
             if (!nextTarget) {
-                // Tüm market listesi kontrol edilmediği için bu durum nadirdir, ancak yine de gösterelim
                 targetInfo.classList.add('hidden');
                 targetCompleted.classList.remove('hidden');
                 return;
@@ -476,11 +638,9 @@
             gameState.items.forEach(item => {
                 const itemEl = document.createElement('div');
                 itemEl.id = `btn-buy-${item.id}`;
-                // Başlangıçta inaktif görünüyor
                 itemEl.className = "bg-slate-800 p-3 rounded-lg border border-slate-700 flex items-center justify-between transition-all duration-200 opacity-50 cursor-not-allowed grayscale select-none";
                 itemEl.onclick = () => buyItem(item);
 
-                // Eşya açıklaması: Tıklama gücü mü, yoksa SPS mi?
                 let description;
                 if (item.type === 'click') {
                     description = `+${item.power} Tıklama Gücü`;
@@ -512,34 +672,33 @@
                 gameState.money -= item.cost;
                 item.bought += 1; 
 
-                // Yeni: Eşya tipine göre güçlendirme uygula
                 if (item.type === 'click') {
                     gameState.clickValue += item.power;
                 } else if (item.type === 'idle') {
                     gameState.sps += item.sps;
                 }
                 
-                item.cost = Math.floor(item.cost * 1.25); // Maliyeti artır
+                item.cost = Math.floor(item.cost * 1.25); 
                 
                 const btn = document.getElementById(`btn-buy-${item.id}`);
                 btn.classList.add('ring-2', 'ring-green-500');
                 setTimeout(() => btn.classList.remove('ring-2', 'ring-green-500'), 200);
 
-                createShop(); // Market UI'ını yeniden oluştur
+                createShop();
                 saveGame(); 
                 updateUI();
+                
+                // Skor da değiştiği için anında Firestore'a kaydetmeyi deneyebiliriz.
+                saveScoreToFirestore(); 
             }
         }
 
         // --- OYUN DÖNGÜSÜ (IDLE INCOME) ---
         function gameLoop() {
-            // Saniyedeki ruhu paraya ekle
             if (gameState.sps > 0) {
-                // Saniyede 1 kez eklemek yerine, 100ms'de bir saniyenin 1/10'unu ekleyerek daha akıcı bir artış sağlarız
                 const incrementalSPS = gameState.sps / 10;
                 gameState.money += incrementalSPS;
                 
-                // Her saniye başı görsel geri bildirim verelim (sabit noktada)
                 if (Date.now() % 1000 < 100) { 
                     showFloatingText(window.innerWidth / 2, window.innerHeight / 2 - 100, `+${gameState.sps} (SPS)`);
                 }
@@ -549,41 +708,35 @@
             }
         }
         
-        // Döngüyü başlat (100ms'de bir çalışır)
         setInterval(gameLoop, 100); 
 
         // --- GİZLİ KOMUT (ADMIN PANEL AKTİVASYONU) ---
-        const SECRET_CODE = ['a', 'd', 'm', 'i', 'n']; // "admin" (Admin) komutu
+        const SECRET_CODE = ['k', 'a', 'p', 'i']; 
         let keySequenceIndex = 0;
 
         function activateAdminMode() {
-            if (isAdminMode) return; // Zaten aktifse tekrar çalıştırma
+            if (isAdminMode) return;
 
             isAdminMode = true;
             updateUI();
             console.log("Gizli Komut Başarılı! Admin Modu Aktif Edildi. Ayarlar butonu görünüyor.");
             showFloatingText(window.innerWidth / 2, window.innerHeight / 2, "ADMIN MODU AÇIK!");
-            toggleAdminPanel(); // Paneli otomatik aç
+            toggleAdminPanel();
         }
 
         document.addEventListener('keydown', (e) => {
-            // Küçük harfe dönüştür
             const key = e.key.toLowerCase();
             
-            // Basılan tuş beklenen tuş mu?
             if (key === SECRET_CODE[keySequenceIndex]) {
-                keySequenceIndex++; // Sıradaki tuşa geç
+                keySequenceIndex++;
                 
-                // Komut tamamlandı mı?
                 if (keySequenceIndex === SECRET_CODE.length) {
                     activateAdminMode();
-                    keySequenceIndex = 0; // Komutu sıfırla
+                    keySequenceIndex = 0;
                 }
             } else {
-                // Yanlış tuşa basıldı, sırayı sıfırla
                 keySequenceIndex = 0;
                 
-                // Eğer basılan tuş, sıranın ilk tuşuysa, sırayı 1'den başlat
                 if (key === SECRET_CODE[0]) {
                      keySequenceIndex = 1;
                 }
@@ -616,6 +769,7 @@
             updateUI();
             toggleAdminPanel();
             showFloatingText(window.innerWidth / 2, window.innerHeight / 2, "HİLE AKTİF!");
+            saveScoreToFirestore(); // Skoru kaydetmeyi unutmayalım
         }
 
         // SIFIRLAMA MODAL KONTROLLERİ
@@ -628,8 +782,9 @@
         }
 
         function confirmReset() {
-            localStorage.removeItem(SAVE_KEY); // Kaydı sil
-            location.reload(); // Sayfayı yenile ve oyunu sıfırla
+            localStorage.removeItem(SAVE_KEY);
+            // Firebase kaydını silmek istenseydi buraya gelirdi, ancak küresel tabloyu bozmamak için sadece localstorage silinir
+            location.reload();
         }
         
         function resetGame() {
@@ -643,14 +798,14 @@
             try {
                 clickSound.play();
             } catch (error) {
-                console.error("Ses çalınamadı (Tarayıcı otomatik oynatma engeli olabilir):", error);
+                console.error("Ses çalınamadı:", error);
             }
         }
 
         // --- Tıklama Olayları ---
         mainCharacter.addEventListener('mousedown', (e) => {
             mainCharacter.parentElement.classList.remove('click-anim');
-            void mainCharacter.parentElement.offsetWidth; // Force reflow
+            void mainCharacter.parentElement.offsetWidth;
             mainCharacter.parentElement.classList.add('click-anim');
 
             gameState.money += gameState.clickValue;
@@ -689,10 +844,37 @@
             setTimeout(() => { el.remove(); }, 1000);
         }
 
+        // --- Panel Kontrol Fonksiyonları (Öncekiyle aynı) ---
+        function toggleLeftPanel() {
+            if (leftPanel.classList.contains('w-0')) {
+                leftPanel.classList.remove('w-0', 'p-0', 'opacity-0', 'border-0', 'overflow-hidden');
+                leftPanel.classList.add('w-full', 'md:w-1/4', 'p-6', 'opacity-100', 'border-r');
+                leftOpenBtn.classList.add('hidden');
+            } else {
+                leftPanel.classList.remove('w-full', 'md:w-1/4', 'p-6', 'opacity-100', 'border-r');
+                leftPanel.classList.add('w-0', 'p-0', 'opacity-0', 'border-0', 'overflow-hidden');
+                leftOpenBtn.classList.remove('hidden');
+            }
+        }
+
+        function toggleRightPanel() {
+            if (rightPanel.classList.contains('w-0')) {
+                rightPanel.classList.remove('w-0', 'p-0', 'opacity-0', 'border-0', 'overflow-hidden');
+                rightPanel.classList.add('w-full', 'md:w-1/4', 'opacity-100', 'border-l');
+                rightOpenBtn.classList.add('hidden');
+            } else {
+                rightPanel.classList.remove('w-full', 'md:w-1/4', 'opacity-100', 'border-l');
+                rightPanel.classList.add('w-0', 'p-0', 'opacity-0', 'border-0', 'overflow-hidden');
+                rightOpenBtn.classList.remove('hidden');
+            }
+        }
+
         // --- Başlangıç ---
-        loadGame(); // Oyunu yükle
-        createShop(); // Market UI'ını oluştur
-        updateUI(); // Arayüzü güncelle
+        loadGame();
+        createShop(); 
+        updateUI(); 
+        initializeFirebase(); // Firebase'i başlat
+        switchTab('stats'); // Varsayılan olarak İstatistikler sekmesini göster
 
     </script>
 </body>
